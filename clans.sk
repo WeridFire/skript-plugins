@@ -5,7 +5,7 @@ function createClan(p: offlineplayer, name: text) :: boolean:
         set {_max} to max({_max}, loop-value parsed as integer)
     set {_id} to {_max}+1
 
-    set {clans::info::%{_id}%::leader} to {_p}
+    set {clans::info::%{_id}%::leader} to {_p} 
     set {clans::info::%{_id}%::name} to {_name}
     set {clans::players::%{_p}%::clan_id} to {_id}
 
@@ -24,38 +24,16 @@ function getClanName(p: offlineplayer) :: text:
     return {_name}
 
 function getClanIdByName(name: text) :: text:
-    loop {clans::info::*}:
+    loop indexes of {clans::info::*}:
         set {_id} to loop-value
         if {clans::info::%{_id}%::name} is {_name}:
             return {_id}
     return ""
-   
 
-function listMembersGui(p: player, id: integer):
-	set {_gui} to a new chest inventory with 9 rows named "&9Clan Members"
-	#limite di memebri è 20. Max 20 slot
-	set slot 0,1,2,3,4,5,6,7,8,9,17,18,26,27,34,35,36,37,38,39,40,41,42,43,44 of {_gui} to white stained glass pane named ""
-	set slot 5 of {_gui} to skull of loop-value named "&6&l%{clans::info::%{_id}%::leader}%" with lore "&7Clan Leader"
-	set slot 40 of {_gui} to banner named "%{clans::info::%{_id}%::name}% Members"
-	set {_slot} to 10
-	loop {clans::info::%{_id}%::members::*}:
-		set {_status} to "&cOFFLINE"
-		if loop-value is online:
-			set {_status} to "&aONLINE"
-		set slot {_slot} of {_gui} to skull of loop-value named "%loop-value parsed as offlineplayer%" with lore "%status%"
-		add 1 to {_slot}
-		if {_slot} is 18 or 27:
-			add 1 to {_slot}
-	open {_gui} to {_p}
-	
-on inventory click:
-	if name of event-inventory is "&9Clan Members":
-		cancel event
 
-			
-   
+command /clan [<text>] [<text>]:
 
-command /cl [<text>] [<text>]:
+    aliases: /c, /cl
 
     trigger:
 
@@ -69,13 +47,16 @@ command /cl [<text>] [<text>]:
             else:
                 send "Clan %arg-2% already exist"
 
+
         else if arg-1 is "list":
             loop indexes of  {clans::info::*}:
                 send {clans::info::%loop-value%::name}
 
+
         else if arg-1 is "debug":
             clear {clans::*}
             send "Variables reset."
+
 
         else if arg-1 is "myclan":
             if {clans::players::%player%::clan_id} is set:
@@ -84,6 +65,7 @@ command /cl [<text>] [<text>]:
             else:
                 send "You're not in a clan yet"
         
+
         else if arg-1 is "quit":
             if {clans::players::%player%::clan_id} is set:
                 set {_name} to getClanName(player)
@@ -92,48 +74,75 @@ command /cl [<text>] [<text>]:
             else:
                 send "<grey>You're not in a clan yet"
 
+
         else if arg-1 is "leader":
             if arg-2 is set:
                 if clanNameExist(arg-2) is true:
-                    send "yes"
                     set {_id} to getClanIdByName(arg-2)
-                    send "not here"
-                    set {_leader} to {clans::info::%{_id}%::leader}
-                    send "<grey>The leader of the clan <orange>%arg-2% <grey>is %{_leader}%"
+                    send "<grey>The leader of the clan <orange>%arg-2% <grey>is %{clans::info::%{_id}%::leader}%"
                 else:
                     send "<grey>Clan %arg-2% does not exist"
             else:
                 send "<grey>Please specify the clan"
-		else if arg-1 is "invite":
-			#TBD: AGGIUNGERE CONTROLLO SE PLAYER CHE HA UN COMANDO E' IN UN CLAN, SE NO AVVISARE CHE NON E' IN UN CLAN.
-			if {clans::info::%{_id}%::leader} is player:
-				if arg-2 is set:
-					set {_i} to arg-2 parsed as player
-					if {_i} is set:
-						if getClanName({_i}) is not set:
-							set {_clan} to getClanName(player)
-							set {_id} to {clans::players::%player%::clan_id}
-							if {clans::info::%{_id}%::invites::*} does not contain {_i}:
-								send message "&aYou have been invited to %getClanName(player)% by player." to {_i}
-								send message "&aThe invite will expire in 1 minute." to {_i}
-								send message formatted "&aClick <cmd:/cl accept %getClanName(player)%>&7[&c&lHERE&7]<reset> &ato accept."
-								add {_i} to {clans::info::%{_id}%::invites::*}
-								send message "&aYou have invited %{_i}% to your clan."
-								wait 1 minute
-								if {clans::info::%{_id}%::invites::*} contains {_i}:
-									remove {_i} from {clans::info::%{_id}%::invites::*}
-									send message "&cYour clan invitation to %{_clan}% expired." to {_i}
-							else:
-								send message "&cYou already have invited this player to your clan."
-						else:
-							send message "&cThis player is already in another clan."
-					else:
-						send message "&cThis player is not online."
-				else:
-					send message "&cSpecify the player you want to invite to your clan."
-			else:
-				send message "&cOnly the clan leader can invite other players."
+        
+
+        else if arg-1 is "accept" or "join":
+            if getClanName(player) is not set:
+                if arg-2 is set:
+                    set {_id} to getClanIdByName(arg-2)
+                    if {clans::info::%{_id}%::invites::*} contains player:
+                        set {clans::players::%player%::clan_id} to {_id}
+                        send "<grey>You're now part of <orange>%getClanName(player)%"
+
+
+        else if arg-1 is "invite":
+            if {clans::players::%player%::clan_id} is set:
+                set {_name} to getClanName(player)
+                if {clans::info::%getClanIdByName({_name})%::leader} is player:
+                    if arg-2 is set:
+                        set {_i} to arg-2 parsed as player
+                        if {_i} is set:
+                            if getClanName({_i}) is not set:
+                                set {_clan} to getClanName(player)
+                                set {_id} to {clans::players::%player%::clan_id}
+                                if {clans::info::%{_id}%::invites::*} does not contain {_i}:
+                                    send message "&aYou have been invited to %getClanName(player)% by %player%." to {_i}
+                                    send message "&aThe invite will expire in 1 minute." to {_i}
+                                    send message formatted "&aClick <cmd:/cl accept %getClanName(player)%>&7[&c&lHERE&7]<reset> &ato accept." to {_i}
+                                    add {_i} to {clans::info::%{_id}%::invites::*}
+                                    send message "&aYou have invited %{_i}% to your clan."
+                                    wait 1 minute
+                                    if {clans::info::%{_id}%::invites::*} contains {_i}:
+                                        remove {_i} from {clans::info::%{_id}%::invites::*}
+                                        send message "&cYour clan invitation to %{_clan}% expired." to {_i}
+                                else:
+                                    send message "&cYou already have invited this player to your clan."
+                            else:
+                                send message "&cThis player is already in another clan."
+                        else:
+                            send message "&cThis player is not online."
+                    else:
+                        send message "&cSpecify the player you want to invite to your clan."
+                else:
+                    send message "&cOnly the clan leader can invite other players."
+            else:
+                send message "&cYou first need to be part of a clan."
 
             
-
-
+        else if arg-1 is "kick" or "ban":
+            if {clans::players::%player%::clan_id} is set:
+                set {_name} to getClanName(player)
+                if {clans::info::%getClanIdByName({_name})%::leader} is player:
+                    if arg-2 is set:
+                        set {_i} to arg-2
+                        if {clans::players::%{_i}%::clan_id} is getClanIdByName({_name}):
+                            clear {clans::players::%{_i}%::clan_id}
+                            send "Succesfully kicked %{_i}% from %{_name}%"
+                        else:
+                            send "<grey>The player you're trying to ban is not part of your clan."
+                    else:
+                        send "<grey>Specify a player to kick."
+                else:
+                    send "<grey>You're not the leader of your clan"
+            else:
+                send "<grey>The player you're trying to ban is not part of your clan."
