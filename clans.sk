@@ -80,35 +80,35 @@ command /cl [<text>] [<text>]:
                     send "<grey>Clan %arg-2% does not exist"
             else:
                 send "<grey>Please specify the clan"
-		else if arg-1 is "invite":
-			#TBD: AGGIUNGERE CONTROLLO SE PLAYER CHE HA UN COMANDO E' IN UN CLAN, SE NO AVVISARE CHE NON E' IN UN CLAN.
-			if {clans::info::%{_id}%::leader} is player:
-				if arg-2 is set:
-					set {_i} to arg-2 parsed as player
-					if {_i} is set:
-						if getClanName({_i}) is not set:
-							set {_clan} to getClanName(player)
-							set {_id} to {clans::players::%{_p}%::clan_id}
-							if {clans::info::%{_id}%::invites::*} does not contain {_i}:
-								send message "&aYou have been invited to %getClanName(player)% by player." to {_i}
-								send message "&aThe invite will expire in 1 minute." to {_i}
-								send message formatted "&aClick <cmd:/cl accept %getClanName(player)%>&7[&c&lHERE&7]<reset> &ato accept."
-								add {_i} to {clans::info::%{_id}%::invites::*}
-								send message "&aYou have invited %{_i}% to your clan."
-								wait 1 minute
-								if {clans::info::%{_id}%::invites::*} contains {_i}:
-									remove {_i} from {clans::info::%{_id}%::invites::*}
-									send message "&cYour clan invitation to %{_clan}% expired." to {_i}
-							else:
-								send message "&cYou already have invited this player to your clan."
+	else if arg-1 is "invite":
+		#TBD: AGGIUNGERE CONTROLLO SE PLAYER CHE HA UN COMANDO E' IN UN CLAN, SE NO AVVISARE CHE NON E' IN UN CLAN.
+		if {clans::info::%{_id}%::leader} is player:
+			if arg-2 is set:
+				set {_i} to arg-2 parsed as player
+				if {_i} is set:
+					if getClanName({_i}) is not set:
+						set {_clan} to getClanName(player)
+						set {_id} to {clans::players::%{_p}%::clan_id}
+						if {clans::info::%{_id}%::invites::*} does not contain {_i}:
+							send message "&aYou have been invited to %getClanName(player)% by player." to {_i}
+							send message "&aThe invite will expire in 1 minute." to {_i}
+							send message formatted "&aClick <cmd:/cl accept %getClanName(player)%>&7[&c&lHERE&7]<reset> &ato accept."
+							add {_i} to {clans::info::%{_id}%::invites::*}
+							send message "&aYou have invited %{_i}% to your clan."
+							wait 1 minute
+							if {clans::info::%{_id}%::invites::*} contains {_i}:
+								remove {_i} from {clans::info::%{_id}%::invites::*}
+								send message "&cYour clan invitation to %{_clan}% expired." to {_i}
 						else:
-							send message "&cThis player is already in another clan."
+							send message "&cYou already have invited this player to your clan."
 					else:
-						send message "&cThis player is not online."
+						send message "&cThis player is already in another clan."
 				else:
-					send message "&cSpecify the player you want to invite to your clan."
+					send message "&cThis player is not online."
 			else:
-				send message "&cOnly the clan leader can invite other players."
+				send message "&cSpecify the player you want to invite to your clan."
+		else:
+			send message "&cOnly the clan leader can invite other players."
 
 
 
