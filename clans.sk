@@ -29,7 +29,31 @@ function getClanIdByName(name: text) :: text:
         if {clans::info::%{_id}%::name} is {_name}:
             return {_id}
     return ""
-    
+   
+
+function listMembersGui(p: player, id: integer):
+	set {_gui} to a new chest inventory with 9 rows named "&9Clan Members"
+	#limite di memebri è 20. Max 20 slot
+	set slot 0,1,2,3,4,5,6,7,8,9,17,18,26,27,34,35,36,37,38,39,40,41,42,43,44 of {_gui} to white stained glass pane named ""
+	set slot 5 of {_gui} to skull of loop-value named "&6&l%{clans::info::%{_id}%::leader}%" with lore "&7Clan Leader"
+	set slot 40 of {_gui} to banner named "%{clans::info::%{_id}%::name}% Members"
+	set {_slot} to 10
+	loop {clans::info::%{_id}%::members::*}:
+		set {_status} to "&cOFFLINE"
+		if loop-value is online:
+			set {_status} to "&aONLINE"
+		set slot {_slot} of {_gui} to skull of loop-value named "%loop-value parsed as offlineplayer%" with lore "%status%"
+		add 1 to {_slot}
+		if {_slot} is 18 or 27:
+			add 1 to {_slot}
+	open {_gui} to {_p}
+	
+on inventory click:
+	if name of event-inventory is "&9Clan Members":
+		cancel event
+
+			
+   
 
 command /cl [<text>] [<text>]:
 
@@ -80,39 +104,36 @@ command /cl [<text>] [<text>]:
                     send "<grey>Clan %arg-2% does not exist"
             else:
                 send "<grey>Please specify the clan"
-	else if arg-1 is "invite":
-		#TBD: AGGIUNGERE CONTROLLO SE PLAYER CHE HA UN COMANDO E' IN UN CLAN, SE NO AVVISARE CHE NON E' IN UN CLAN.
-		if {clans::info::%{_id}%::leader} is player:
-			if arg-2 is set:
-				set {_i} to arg-2 parsed as player
-				if {_i} is set:
-					if getClanName({_i}) is not set:
-						set {_clan} to getClanName(player)
-						set {_id} to {clans::players::%{_p}%::clan_id}
-						if {clans::info::%{_id}%::invites::*} does not contain {_i}:
-							send message "&aYou have been invited to %getClanName(player)% by player." to {_i}
-							send message "&aThe invite will expire in 1 minute." to {_i}
-							send message formatted "&aClick <cmd:/cl accept %getClanName(player)%>&7[&c&lHERE&7]<reset> &ato accept."
-							add {_i} to {clans::info::%{_id}%::invites::*}
-							send message "&aYou have invited %{_i}% to your clan."
-							wait 1 minute
-							if {clans::info::%{_id}%::invites::*} contains {_i}:
-								remove {_i} from {clans::info::%{_id}%::invites::*}
-								send message "&cYour clan invitation to %{_clan}% expired." to {_i}
+		else if arg-1 is "invite":
+			#TBD: AGGIUNGERE CONTROLLO SE PLAYER CHE HA UN COMANDO E' IN UN CLAN, SE NO AVVISARE CHE NON E' IN UN CLAN.
+			if {clans::info::%{_id}%::leader} is player:
+				if arg-2 is set:
+					set {_i} to arg-2 parsed as player
+					if {_i} is set:
+						if getClanName({_i}) is not set:
+							set {_clan} to getClanName(player)
+							set {_id} to {clans::players::%player%::clan_id}
+							if {clans::info::%{_id}%::invites::*} does not contain {_i}:
+								send message "&aYou have been invited to %getClanName(player)% by player." to {_i}
+								send message "&aThe invite will expire in 1 minute." to {_i}
+								send message formatted "&aClick <cmd:/cl accept %getClanName(player)%>&7[&c&lHERE&7]<reset> &ato accept."
+								add {_i} to {clans::info::%{_id}%::invites::*}
+								send message "&aYou have invited %{_i}% to your clan."
+								wait 1 minute
+								if {clans::info::%{_id}%::invites::*} contains {_i}:
+									remove {_i} from {clans::info::%{_id}%::invites::*}
+									send message "&cYour clan invitation to %{_clan}% expired." to {_i}
+							else:
+								send message "&cYou already have invited this player to your clan."
 						else:
-							send message "&cYou already have invited this player to your clan."
+							send message "&cThis player is already in another clan."
 					else:
-						send message "&cThis player is already in another clan."
+						send message "&cThis player is not online."
 				else:
-					send message "&cThis player is not online."
+					send message "&cSpecify the player you want to invite to your clan."
 			else:
-				send message "&cSpecify the player you want to invite to your clan."
-		else:
-			send message "&cOnly the clan leader can invite other players."
-
-
+				send message "&cOnly the clan leader can invite other players."
 
             
-
 
 
